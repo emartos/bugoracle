@@ -47,8 +47,8 @@ This project is a robust **bug categorization and analysis tool** powered by **L
 
 ### Step 1: Clone the repository
 ```bash
-git clone https://github.com/yourusername/bug-oracle.git
-cd bug-oracle
+git clone https://github.com/emartos/bugoracle.git
+cd bugoracle
 ```
 
 ### Step 2: Create and activate the virtual environment
