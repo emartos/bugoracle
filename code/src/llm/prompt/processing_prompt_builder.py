@@ -11,50 +11,36 @@ class ProcessingPromptBuilder(AbstractPromptBuilder):
 
     ASSISTANT_TASK = """
     **Task**: Given an incident, classify and categorize it into **main categories** and **subcategories** based on three dimensions:
+    Technological Component, Functional Area, and Problem Type.
+    Return **only** the JSON output as specified, without generating any script or additional text.
 
-    1. Technological Component:
-    ```
-    [TECHNOLOGICAL_COMPONENT]`
-    ```
+    **Dimensions**:
 
-    2. Functional Area:
-    ```
-    [FUNCTIONAL_AREA]
-    ```
+    1. Technological Component: [TECHNOLOGICAL_COMPONENT]
+    2. Functional Area: [FUNCTIONAL_AREA]
+    3. Problem Type: [PROBLEM_TYPE]
 
-    3. Problem Type:
-    ```
-    [PROBLEM_TYPE]
-    ```
+    **Incident Data**:
 
-    **What is an incident**: An incident consists on two attributes: summary and description.
+    - Subject: [SUBJECT]
+    - Description: [DESCRIPTION]
 
     **Instructions**:
 
-    1. **Analyze the Incident**:
-       - Parse the input data to determine the appropriate category and subcategory for each dimension (Technological component, Functional area, Problem type).
-       - Use the platform context, including secondary projects and alternative names, to guide categorization.
-       - If information is ambiguous, make a reasoned assumption based on context and document it in a "Notes" column in the output.
-
-    2. **Categorization**:
-
-       - Assign a **main category** and, where applicable, a **subcategory** for each dimension. For example:
-         - Technological component: Main: Drupal 10, Subcategory: Commerce Module.
-         - Functional area: Main: Pricing, Subcategory: Discount Calculation.
-         - Problem type: Main: Functional Error, Subcategory: Type Error.
-
-    3. **Output Format**:
-
-       - Generate a JSON file with the following structure:
-        {
-            "technological_component": "Main technological component affected.",
-            "technological_component_subcategory": "Subcategory for the technological component (or "N/A" if none).",
-            "functional_area": "Main functional area affected.",
-            "functional_area_subcategory": "Subcategory for the functional area (or "N/A" if none).",
-            "problem_type": "Main problem type.",
-            "problem_type_subcategory": "Subcategory for the problem type (or "N/A" if none).",
-            "notes": "Brief explanation of the categorization rationale or assumptions made.",
-        }
+    1. Parse the incident data to determine the appropriate category and subcategory for each dimension (Technological component, Functional area, Problem type).
+    2. Use the platform context, including secondary projects and alternative names, to guide categorization.
+    3. If information is ambiguous, make a reasoned assumption based on context and document it in a "Notes" column in the output.
+    4. Return **only** the JSON object with the following structure:
+    {
+        "technological_component": "Main technological component affected.",
+        "technological_component_subcategory": "Subcategory or N/A.",
+        "functional_area": "Main functional area affected.",
+        "functional_area_subcategory": "Subcategory or N/A.",
+        "problem_type": "Main problem type.",
+        "problem_type_subcategory": "Subcategory or N/A.",
+        "notes": "Brief explanation of the categorization rationale or assumptions."
+    }
+    - Do **not** generate a script or any additional text outside the JSON.
 
     **Example Input**:
 
@@ -81,26 +67,13 @@ class ProcessingPromptBuilder(AbstractPromptBuilder):
 
     - Ensure the categorization is clear, consistent, and actionable for a technical team (developers, system administrators, product managers).
     - Handle ambiguous or incomplete incident descriptions by making reasonable assumptions and documenting them.
-
-    **Incident data**:
-
-    Below is the incident data for subject and description:
-
-    - Subject:
-    ```
-    [SUBJECT]
-    ```
-
-    - Description:
-    ```
-    [DESCRIPTION]
-    ```
     """
 
     ASSISTANT_RESPONSE_INSTRUCTIONS = """
     **Response instructions**:
 
     - You must only provide JSON data.
+    - Return **only** the JSON output as specified, without generating any script or additional text.
     - Your response must contain nothing but the JSON data, with no delimiters (such as ```json), additional indications, or the word 'json'.
     """.strip()
 
