@@ -28,7 +28,6 @@ class Grok(ModelInterface):
         self.cache_manager = CacheManager()
         self.model = os.getenv("XAI_TEXT_MODEL", "grok2")
         self.role = os.getenv("XAI_TEXT_ROLE", "assistant")
-        self.priority = 2
 
     def get_name(self) -> str:
         """

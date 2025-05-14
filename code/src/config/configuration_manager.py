@@ -14,7 +14,7 @@ class ConfigurationManager:
     """
 
     VALID_EXPORT_FORMATS = ["csv", "json"]
-    VALID_LLM_PROVIDERS = ["openai", "grok"]
+    VALID_LLM_PROVIDERS = ["openai", "grok", "ollama", "googlegenai"]
 
     _instance = None
 

@@ -1,37 +1,30 @@
-import logging
+import ollama
 import os
-import time
-
-import openai
 from src.llm.cache_manager import CacheManager
-
 from .model_interface import ModelInterface
+from requests.exceptions import RequestException
 
 
-class Openai(ModelInterface):
+class Ollama(ModelInterface):
     """
-    Provides functionality to generate text using the OpenAI API
-    and a caching system.
+    Class that integrates the Ollama library for Llama models.
     """
 
     def __init__(self):
         """
-        Initializes the OpenAI API client and sets up necessary configurations.
+        Initializes Ollama for Llama integration with cache management.
         """
-        openai.api_key = os.getenv("OPENAI_API_KEY")
-        self.client = openai.OpenAI()
         self.cache_manager = CacheManager()
-        self.model = os.getenv("OPENAI_TEXT_MODEL", "gpt-4")
-        self.role = os.getenv("OPENAI_TEXT_ROLE", "assistant")
+        self.model = os.getenv("LLAMA_TEXT_MODEL", "llama3.2")
+
+        base_url = os.getenv("LLAMA_BASE_URL", "http://localhost:11434")
+        ollama.base_url = base_url
 
     def get_name(self) -> str:
         """
-        Retrieves the identifier name of the OpenAI API handler.
-
-        Returns:
-            str: The string `"openai"`, which serves as the identifier for this handler.
+        Returns the name of the model ('ollama' in this case).
         """
-        return "openai"
+        return "ollama"
 
     def generate(
         self,
@@ -42,7 +35,7 @@ class Openai(ModelInterface):
         max_tokens: int = 1500,
     ):
         """
-        Generates text using the OpenAI API based on the provided prompt and settings.
+        Generates text using the Ollama client for Llama based on the provided prompt and settings.
 
         If caching is enabled and a cached response exists for the given prompt, it is
         returned directly. Otherwise, a request is made to OpenAI's API, and the
@@ -71,12 +64,8 @@ class Openai(ModelInterface):
 
         request_params = {
             "model": self.model,
-            "messages": [{"role": self.role, "content": f"{prompt}"}],
-            "temperature": temperature,
-            "max_tokens": max_tokens,
+            "prompt": prompt,
         }
-        if response_format:
-            request_params["response_format"] = response_format
 
         max_retries = 15
         initial_delay = 5.0
@@ -84,18 +73,18 @@ class Openai(ModelInterface):
 
         while retry_count < max_retries:
             try:
-                response_object = self.client.chat.completions.create(**request_params)
-                response = response_object.choices[0].message.content
+                response = ollama.generate(**request_params)
+                response_text = response.get("response", "")
                 if cache:
-                    self.cache_manager.set(prompt, response)
-                return response
-            except openai.RateLimitError:
+                    self.cache_manager.set(prompt, response_text)
+                return response_text
+            except (ollama.ResponseError, RequestException) as e:
                 retry_count += 1
                 logging.warning(
                     f"Rate limit exceeded. Retry {retry_count}/{max_retries} after {initial_delay} seconds."
                 )
                 time.sleep(initial_delay)
-                initial_delay *= 1.5
+                initial_delay *= 0.5
             except Exception as e:
                 raise Exception(f"An unexpected error occurred: {str(e)}")
 
